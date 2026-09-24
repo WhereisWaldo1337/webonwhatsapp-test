@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Menu bot setup guide, step by step | Web on WhatsApp</title><meta name="description" content="Setup guide for buyers of the auto-reply menu bot: Cloudflare, your Meta app, your number, the permanent token and going live, in plain words."><link rel="canonical" href="https://webonwhatsapp.com/setup-guide/"><meta name="robots" content="noindex,follow"><meta name="x-build" content="lokaal 2026-09-24T01:05:41.735Z"><meta property="og:type" content="website"><meta property="og:site_name" content="webonwhatsapp.com"><meta property="og:title" content="Menu bot setup guide, step by step | Web on WhatsApp"><meta property="og:description" content="Setup guide for buyers of the auto-reply menu bot: Cloudflare, your Meta app, your number, the permanent token and going live, in plain words."><meta property="og:url" content="https://webonwhatsapp.com/setup-guide/"><meta property="og:locale" content="en_US"><meta property="og:image" content="https://webonwhatsapp.com/og/setup-guide.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Menu bot setup guide - webonwhatsapp.com, an unofficial guide, not affiliated with WhatsApp or Meta"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Menu bot setup guide, step by step | Web on WhatsApp"><meta name="twitter:description" content="Setup guide for buyers of the auto-reply menu bot: Cloudflare, your Meta app, your number, the permanent token and going live, in plain words."><meta name="twitter:image" content="https://webonwhatsapp.com/og/setup-guide.png"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0e1620" media="(prefers-color-scheme: dark)"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"WhatsApp Web guide","item":"https://webonwhatsapp.com/"},{"@type":"ListItem","position":2,"name":"Menu bot setup guide","item":"https://webonwhatsapp.com/setup-guide/"}]}</script><script>
+    /* The page view, and the handful of interactions that tell whether the site earns:
+       a click out to a vendor (which one, from which block, on which page), a click out to
+       the real WhatsApp Web, a step from a guide or tool into the business section, a tool
+       that was actually used. They go to the same first-party /px as the page view, as a
+       pseudo-path under /~e/ - the hits table needs no new column, and visitor counts
+       (COUNT DISTINCT visitor) are untouched. NEVER anything a visitor typed: only names
+       that are already in the page. Mirrored to GA4 when a property is configured. */
+    (function () {
+      var send = function (p, r) { try { if (navigator.sendBeacon) navigator.sendBeacon('/px?p=' + encodeURIComponent(p.slice(0, 190)) + (r ? '&r=' + encodeURIComponent(r) : '')); } catch (e) {} };
+      try {
+        var r = '';
+        try { r = document.referrer ? new URL(document.referrer).origin : ''; } catch (e) {}
+        send(location.pathname, r);
+      } catch (e) {}
+      window.wowTrack = function (name, detail) {
+        send('/~e/' + name + '/' + detail + '~' + location.pathname);
+        try { if (window.gtag) window.gtag('event', name.replace(/-/g, '_'), { detail: detail, page_path: location.pathname }); } catch (e) {}
+      };
+      document.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest ? e.target.closest('a') : null; if (!a) return;
+        if (a.dataset.vendor) return window.wowTrack('vendor', a.dataset.vendor + '/' + (a.dataset.pos || 'link'));
+        if (a.dataset.official) return window.wowTrack('official', a.dataset.official);
+        var path = a.getAttribute('href') || '';
+        if (path.indexOf('/business/') === 0 && location.pathname.indexOf('/business/') !== 0)
+          window.wowTrack('to-business', a.closest('.rail') ? 'rail' : a.closest('.note') ? 'note' : a.closest('.home') ? 'home' : a.closest('.menu') ? 'menu' : 'body');
+      });
+      /* DWELL TIME (Bob, 19 Sep 2026): how long a visitor actually stays. Counts seconds the
+         page was VISIBLE, not seconds since it loaded - a tab left open behind another one
+         earns nothing. Written as an event row like the interactions above:
+           /~e/dwell/<seconds>/<a|p>~<path>
+         a = the visitor scrolled, clicked, typed or touched at least once; p = never did
+         (a monitor or a bounce). The number is CUMULATIVE and is sent each time the page is
+         hidden or unloaded, so a visitor who switches tab and comes back is not cut short -
+         read it as MAX(seconds) per visitor and page. Capped at 30 minutes so a forgotten
+         tab does not drag the average. Only this site sends it; /px and the table are
+         unchanged. Why the flag: two 20-30 visitor bursts from ~20 countries in one minute
+         showed up here on 18 and 19 Sep, and only time on page plus any interaction can
+         separate those from people. */
+      var shownAt = document.hidden ? 0 : Date.now(), seen = 0, sentSecs = 0, touched = 0;
+      var mark = function () { touched = 1; };
+      ['scroll', 'click', 'keydown', 'touchstart'].forEach(function (n) { addEventListener(n, mark, { passive: true, once: true }); });
+      var stop = function () { if (shownAt) { seen += Date.now() - shownAt; shownAt = 0; } };
+      var flush = function () {
+        stop();
+        var s = Math.min(1800, Math.round(seen / 1000));
+        if (s < 1 || s === sentSecs) return;
+        sentSecs = s;
+        send('/~e/dwell/' + s + '/' + (touched ? 'a' : 'p') + '~' + location.pathname);
+      };
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) flush(); else if (!shownAt) shownAt = Date.now();
+      });
+      addEventListener('pagehide', flush);
+    })();
+  </script><link rel="stylesheet" href="/_astro/about.JIlsMllI.css"></head> <body> <header class="site-header"> <div class="shell site-header__row"> <div class="site-header__brand"> <a class="wordmark" href="/"><i aria-hidden="true"></i>webonwhatsapp.com</a> <p class="site-header__note" data-independence-notice>Unofficial guide. Not affiliated with WhatsApp or Meta.</p> </div> <nav aria-label="Site sections"> <ul class="menu"> <li><a href="/">Guides</a></li><li><a href="/login/">Login</a></li><li><a href="/not-working/">Not working</a></li><li><a href="/keyboard-shortcuts/">Shortcuts</a></li><li><a href="/security/">Security</a></li><li><a href="/business/">For business</a></li><li><a href="/tools/">Free tools</a></li> </ul> </nav> </div> </header> <main class="shell"> <header class="hero hero--site"> <div class="hero__inner"> <ol class="crumbs" aria-label="Breadcrumb"><li><a href="/">WhatsApp Web guide</a></li><li><span aria-current="page">Menu bot setup guide</span></li></ol> <p class="kicker"><span aria-hidden="true"></span> About this site</p>  <h1>Menu bot setup guide</h1> <p class="answer">For buyers of the menu bot: every step, in plain words. About <strong>one hour</strong>, two free accounts, <strong>no programming</strong>. Stuck? Support is included for 30 days.</p>   </div> </header>  <div class="page page--single"> <div class="page__main page__main--wide">   <div class="prose" style="max-width: var(--measure)"> <div class="note" id="hosted"> <p><b>Is your bot hosted by us?</b> Then you skip everything about Cloudflare. You only do the Meta part: <b>step 3</b> (create your Meta app), <b>step 4</b> (connect your number), <b>step 5</b> (permanent access token and app secret) and <b>step 9</b> (go live). Then log in to the <a href="https://portal.airtimemedia.eu/">customer portal</a> and paste the app ID, app secret, token, phone number ID and WhatsApp Business Account ID under your purchase. We connect the webhook for you.</p> </div> <p>You are about to run a menu bot that belongs to you. It lives in <strong>your</strong> Cloudflare account, talks to
+WhatsApp through <strong>your</strong> Meta app, and nobody else, including us, can see your messages or your access
+token. Set aside <strong>45 to 60 minutes</strong>. You need no programming knowledge, only patience with two
+dashboards.</p>
+<blockquote>
+<p><strong>Included: 30 days of setup help.</strong> Stuck? First open your bot's <code>/check</code> page (step 7). It tests every
+setting and tells you in plain words what to fix. Still stuck: mail <strong><a href="mailto:info@airtimemedia.eu">info@airtimemedia.eu</a></strong> with a
+screenshot of that page and we answer within two working days. Want your menu changed? Mail us what
+should be different and we send you the new menu to paste in. If we cannot get your bot running within 30 days of
+purchase, you get your money back.</p>
+</blockquote>
+<h2>Before you start: three things to know</h2>
+<ol>
+<li><strong>The bot needs a phone number that is not in use in the WhatsApp or WhatsApp Business app.</strong> A number
+connected directly to the WhatsApp Business Platform cannot be open in the phone app at the same time.
+Most owners use a second number for the bot (a spare SIM, a landline or a virtual number that can
+receive one SMS or call) and keep their existing number in the app for talking to people. The bot hands
+customers over to that number with a link.</li>
+<li><strong>What it costs to run.</strong> Cloudflare's free plan is enough for roughly 300 to 400 customer messages a
+day. Meta charges nothing for the first 1,000 replies per month per number (rule from 1 October 2026;
+before that date replies are free without a limit). Beyond that, Meta charges a small fee per reply and
+asks for a payment method on your WhatsApp Business Account. The optional notification template (step
+8) is charged per message from the first one.</li>
+<li><strong>What the bot does.</strong> It answers people who write to you: menu, replies, questions, a summary to you.
+It never starts conversations and never sends marketing, so it needs no opt-in list.</li>
+</ol>
+<h2>1. Your menu is already inside</h2>
+<p>This download was built for you: the menu you made and tried on <code>webonwhatsapp.com</code> is written into
+<code>worker.js</code>. There is nothing to copy. <code>menu.json</code> in this folder is the same menu, for your own records.</p>
+<p>Not happy with a text or an option? For 30 days after your purchase you can change the menu as often as
+you like: see "Changing the menu later" at the end of this guide.</p>
+<h2>2. Create the bot on Cloudflare</h2>
+<ol>
+<li>Create a free account at <code>dash.cloudflare.com</code>.</li>
+<li><strong>Workers &#x26; Pages</strong> → <strong>Create</strong> → <strong>Worker</strong> → start from "Hello World" → name it (for example
+<code>menubot</code>) → <strong>Deploy</strong>.</li>
+<li><strong>Edit code</strong>, delete everything in the editor, paste the whole of <code>worker.js</code> → <strong>Deploy</strong>.</li>
+<li>Note the address of your Worker: <code>https://menubot.YOUR-NAME.workers.dev</code>. This is your <strong>callback URL</strong>.</li>
+<li><strong>Storage &#x26; Databases</strong> → <strong>KV</strong> → <strong>Create</strong> a namespace called <code>menubot-state</code>.</li>
+<li>Back in the Worker: <strong>Settings</strong> → <strong>Bindings</strong> → <strong>Add</strong> → <strong>KV namespace</strong> → variable name <code>STATE</code>
+(exactly, in capitals) → choose <code>menubot-state</code> → <strong>Deploy</strong>.</li>
+</ol>
+<h2>3. Create your Meta app</h2>
+<ol>
+<li>Go to <code>developers.facebook.com</code>, log in with your Facebook account and register as a developer.</li>
+<li><strong>My Apps</strong> → <strong>Create App</strong> → use case <strong>"Connect with customers through WhatsApp"</strong> → choose or create
+your business portfolio → finish.</li>
+<li>In the app, open <strong>WhatsApp</strong> → <strong>API Setup</strong>. Meta gives you a test number to try things with. Under
+<strong>"To"</strong>, add your own mobile number as a recipient and confirm the code: while the app is in development
+mode the bot can only answer numbers on this list.</li>
+<li>Note the <strong>Phone number ID</strong> shown on this page (a long number, not the phone number itself).</li>
+</ol>
+<h2>4. Connect your real number (can also be done after testing)</h2>
+<p>On the same page choose <strong>Add phone number</strong>, enter your business name and the number from "Before you
+start", and confirm it by SMS or call. Meta reviews the display name. Use the Phone number ID of <strong>this</strong>
+number from now on.</p>
+<h2>5. Get a permanent access token</h2>
+<p>The token on the API Setup page expires after 24 hours. For a bot you need one that does not:</p>
+<ol>
+<li><code>business.facebook.com</code> → <strong>Settings</strong> → <strong>Users</strong> → <strong>System users</strong> → <strong>Add</strong> → name <code>menubot</code>, role Admin.</li>
+<li><strong>Assign assets</strong>: your app (full control) and your WhatsApp account (full control).</li>
+<li><strong>Generate token</strong> → select your app → expiration <strong>Never</strong> → tick <code>whatsapp_business_messaging</code> and
+<code>whatsapp_business_management</code> → copy the token. It is shown once.</li>
+<li>In your Meta app: <strong>App settings</strong> → <strong>Basic</strong> → <strong>App secret</strong> → Show → copy it.</li>
+</ol>
+<h2>6. Give the bot its settings</h2>
+<p>In Cloudflare: Worker → <strong>Settings</strong> → <strong>Variables and Secrets</strong> → <strong>Add</strong>. Use type <strong>Secret</strong> where marked.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PHONE_NUMBER_ID</code></td>
+<td>Text</td>
+<td>from step 3 or 4</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_TOKEN</code></td>
+<td>Secret</td>
+<td>the permanent token from step 5</td>
+</tr>
+<tr>
+<td><code>APP_SECRET</code></td>
+<td>Secret</td>
+<td>the app secret from step 5</td>
+</tr>
+<tr>
+<td><code>VERIFY_TOKEN</code></td>
+<td>Secret</td>
+<td>any phrase you make up, e.g. <code>blue-kettle-42</code></td>
+</tr>
+<tr>
+<td><code>CHECK_KEY</code></td>
+<td>Secret</td>
+<td>another phrase you make up; it opens your check page</td>
+</tr>
+<tr>
+<td><code>OWNER_NUMBER</code></td>
+<td>Text, optional</td>
+<td>your own WhatsApp number with country code; completed requests are sent there</td>
+</tr>
+<tr>
+<td><code>NOTIFY_URL</code></td>
+<td>Text, optional</td>
+<td>a web address (Zapier, Make, Google Sheets script) that receives each request</td>
+</tr>
+</tbody>
+</table></div>
+<p>Press <strong>Deploy</strong> after adding them.</p>
+<h2>7. Connect WhatsApp to the bot, and check</h2>
+<ol>
+<li>Meta app → <strong>WhatsApp</strong> → <strong>Configuration</strong> → <strong>Webhook</strong> → <strong>Edit</strong>: callback URL = your Worker
+address from step 2, verify token = the <code>VERIFY_TOKEN</code> phrase → <strong>Verify and save</strong>.</li>
+<li>Under <strong>Webhook fields</strong>, subscribe to <strong>messages</strong>.</li>
+<li>Open <code>https://menubot.YOUR-NAME.workers.dev/check?key=YOUR_CHECK_KEY</code>. Every line should say <strong>OK</strong>.
+A line that says <strong>FIX</strong> tells you what to change.</li>
+<li>From your mobile, send "hi" to the bot's number. The menu should answer within a second or two.
+Reload the check page: "Messages arriving from Meta" now shows the time.</li>
+</ol>
+<h2>8. Notifications that always arrive (recommended)</h2>
+<p>The bot sends each completed request to <code>OWNER_NUMBER</code> as a normal message. WhatsApp only allows that within
+24 hours of <strong>your</strong> last message to the bot. Two ways to deal with it:</p>
+<ul>
+<li><strong>Simple:</strong> send the bot any message from your own WhatsApp once a day. It answers "Notifications are on".</li>
+<li><strong>Reliable:</strong> Meta app → WhatsApp → <strong>Message templates</strong> → create a <strong>Utility</strong> template named
+<code>new_request</code>, language English (US), body <code>New request: {{1}}</code>. Once approved, add the variable
+<code>NOTIFY_TEMPLATE</code> = <code>new_request</code>. The bot uses it automatically whenever your 24 hours have run out.</li>
+</ul>
+<h2>9. Go live</h2>
+<p>In the Meta app, switch <strong>App mode</strong> from Development to <strong>Live</strong> (Meta asks for a privacy policy URL; your
+website's policy is fine). From now on the bot answers everyone, not only the numbers on your test list.
+Put the bot's number on your website with a chat button or link from <code>webonwhatsapp.com/tools/</code>.</p>
+<h2>Changing the menu later</h2>
+<p><strong>Within 30 days of your purchase:</strong> make the new menu in the generator on <code>webonwhatsapp.com</code>, choose
+<strong>"I already bought"</strong> under the price, and enter the licence key from your Gumroad receipt. You get a
+fresh download with the new menu inside. In Cloudflare, open your Worker, <strong>Edit code</strong>, replace
+everything with the new <code>worker.js</code>, <strong>Deploy</strong>. Your settings stay as they are.</p>
+<p><strong>At any time, by hand:</strong> open <code>menu.json</code>, change the texts, and paste the whole content into a new
+variable called <code>MENU_JSON</code> (type Text) under <strong>Settings</strong> → <strong>Variables and Secrets</strong>, then <strong>Deploy</strong>.
+A <code>MENU_JSON</code> variable always wins over the menu inside the file.</p>
+<p><strong>Opening hours (optional).</strong> By default the bot always sends your greeting. To send the away message
+outside your hours, use the <code>MENU_JSON</code> way above and replace <code>"schedule": null</code> with your times
+(24-hour clock, your time zone):</p>
+<pre><code class="language-json">"schedule": { "tz": "Europe/London", "days": { "mon": ["09:00", "17:30"], "tue": ["09:00", "17:30"], "wed": ["09:00", "17:30"], "thu": ["09:00", "17:30"], "fri": ["09:00", "17:30"] } }
+</code></pre>
+<p>Days you leave out are closed.</p>
+<h2>How the bot behaves</h2>
+<p>You can try all of this before you install anything: the chat in step 2 of the generator runs the same
+logic as your bot.</p>
+<ul>
+<li>First message from a customer → your greeting with the menu (or the away message when you are closed).
+If that first message already says what they want ("do you have a table tonight?"), the bot answers it
+directly instead.</li>
+<li>A number, letter or keyword → that option's reply. The bot also understands plain questions: "what time
+are you open?", "how much is it?", "can I book?" find the matching option.</li>
+<li>If the option has questions, the bot asks them one by one, then sends your closing line and notifies you
+with the answers and a link to reply to the customer.</li>
+<li>Inside those questions a customer is never trapped: <code>CANCEL</code> stops, <code>MENU</code> starts over, and a question
+("how much is a pizza?") pauses the request and gets answered instead of being saved as an answer.</li>
+<li>If the option books a time, the bot offers the times you are still free as numbers, writes the
+booking down and gives the customer a code to cancel with. See <strong>Your agenda</strong> below.</li>
+<li>"Hi" shows the menu again, "thanks" gets a thank-you. Neither counts as a mistake.</li>
+<li>"Talk to a person", or two replies in a row the bot does not understand → your handover message and a
+notification to you. After that the customer is never met with silence: a menu choice, a greeting or
+<code>MENU</code> wakes the bot again, and anything else is passed on to you and acknowledged to the customer.</li>
+<li>You reply to customers from your own WhatsApp (the notification contains a link that opens the chat).
+The bot's number has no phone app, which is why the staff number in your menu matters.</li>
+</ul>
+<h2>Your agenda: letting customers book a time</h2>
+<p>Bookings are part of the assistant, the version we set up and run for you; the download you bought
+is the menu bot, and its <code>menu.json</code> says <code>"booking": { "enabled": false ...</code>. Everything the agenda
+needs is nevertheless inside your bot, so if you want to run it yourself, set <code>"enabled": true</code> and
+fill in the days below - it is your file. What follows is how it then behaves. There is nothing to
+connect and no account to link: the bot works out which times are still free, offers
+three of them as numbered choices, and writes the booking down in its own storage.</p>
+<p>A booking looks like this to your customer:</p>
+<pre><code>1. Wednesday 23 September, 10:00
+2. Wednesday 23 September, 11:00
+3. Thursday 24 September, 09:00
+4. Other times
+</code></pre>
+<p>They reply <code>2</code>. The bot answers any questions you set for that option, confirms the time and gives
+them a six-character code. <strong>Sending that code back cancels their booking</strong> and puts the time back
+on offer. Nobody else's code works, and a time that is booked is never offered again (unless you
+set "how many at the same time" higher than one).</p>
+<p><strong>You get the booking twice.</strong> The notification on your own WhatsApp says the time, the customer's
+details and their number — and carries a link ending in <code>/ics/CODE.ics</code>. Opening it on your phone
+offers to put that appointment straight into your calendar app. Nothing of ours sits in between.</p>
+<p><strong>Your whole agenda as a calendar you can subscribe to:</strong></p>
+<pre><code>https://menubot.YOUR-NAME.workers.dev/calendar.ics?key=YOUR_CHECK_KEY
+</code></pre>
+<ul>
+<li>Google Calendar: <strong>Other calendars</strong> → <strong>+</strong> → <strong>From URL</strong> → paste → <strong>Add calendar</strong></li>
+<li>Outlook: <strong>Add calendar</strong> → <strong>Subscribe from web</strong> → paste → <strong>Import</strong></li>
+<li>Apple Calendar: <strong>File</strong> → <strong>New Calendar Subscription</strong> → paste</li>
+</ul>
+<p>Both Google and Outlook refresh a subscribed calendar on their own schedule, which can take several
+hours — that is their choice, not a setting in the bot. The link in each notification is the one to
+use when you want the appointment in your calendar <em>now</em>. Treat the address like a password: anyone
+who has it can read your bookings. If you ever want to cut it off, change <code>CHECK_KEY</code> in your
+Worker's settings.</p>
+<p><strong>Times you took yourself.</strong> The bot only knows the bookings it made. If someone books by phone or
+walks in, send a message to your own bot from your own WhatsApp, pick that time the way a customer
+would, and it is blocked for everyone else. The code it gives you frees it again.</p>
+<p><strong>What the bot keeps.</strong> Everything still to come, plus the last seven days. Older bookings are
+cleared away by themselves, so your calendar stays the agenda and not an archive.</p>
+<p><strong>Changing your hours later.</strong> The quickest way is the generator: make the change, use
+<strong>"I already bought"</strong> with your licence key, and replace <code>worker.js</code> with the new download. By hand,
+the agenda sits in <code>menu.json</code> under <code>"booking"</code> — the days work exactly like the <code>schedule</code> example
+above, and <code>slotMinutes</code>, <code>capacity</code>, <code>leadHours</code> and <code>daysAhead</code> are what they say.</p>
+<h2>If something does not work</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>What you see</th>
+<th>Usual cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check page: token invalid or expired</td>
+<td>You used the 24-hour token from API Setup. Make the permanent one (step 5).</td>
+</tr>
+<tr>
+<td>Check page: recipient not on the allowed list</td>
+<td>App still in development mode and your phone is not under "To" (step 3), or go live (step 9).</td>
+</tr>
+<tr>
+<td>Check page: no messages arriving</td>
+<td>Webhook not verified, or the <strong>messages</strong> field not subscribed (step 7).</td>
+</tr>
+<tr>
+<td>"Verify and save" fails in Meta</td>
+<td>The verify token differs from <code>VERIFY_TOKEN</code>, or you forgot to Deploy after adding it.</td>
+</tr>
+<tr>
+<td>Bot answers you with "Notifications are on"</td>
+<td>You are writing from <code>OWNER_NUMBER</code>. Send <code>MENU</code> to try the menu, or test from another phone.</td>
+</tr>
+<tr>
+<td>A customer's messages arrive as "Message for the team"</td>
+<td>A handover happened: the bot passes their messages on to you until they send <code>MENU</code>, a greeting or a menu choice.</td>
+</tr>
+</tbody>
+</table></div> <p class="small">Questions about a step: <a href="mailto:info@airtimemedia.eu">info@airtimemedia.eu</a>, with a screenshot of where you are.</p> </div>   </div>  </div> </main> <footer class="site-footer"> <div class="shell"> <div class="cols"> <div><h2>WhatsApp Web guides</h2><ul><li><a href="/login/">Login</a></li><li><a href="/scan-qr-code/">Scan the QR code</a></li><li><a href="/not-working/">Not working</a></li><li><a href="/pc/">On a PC</a></li><li><a href="/mac/">On a Mac</a></li></ul></div> <div><h2>More guides</h2><ul><li><a href="/link-device/">Link another device</a></li><li><a href="/logout/">Log out remotely</a></li><li><a href="/keyboard-shortcuts/">Keyboard shortcuts</a></li><li><a href="/security/">Security</a></li><li><a href="/web-vs-desktop/">Web vs Desktop</a></li><li><a href="/whats-new/">What&#39;s new</a></li></ul></div> <div><h2>For business</h2><ul><li><a href="/business/">WhatsApp Business on the web</a></li><li><a href="/business/automation/">WhatsApp automation</a></li><li><a href="/business/chatbot/">WhatsApp chatbot</a></li><li><a href="/business/crm/">WhatsApp CRM</a></li><li><a href="/business/api/">WhatsApp API</a></li><li><a href="/business/marketing/">WhatsApp marketing</a></li><li><a href="/business/software/">Best WhatsApp Business software</a></li></ul></div> <div><h2>This site</h2><ul><li><a href="/tools/link-generator/">WhatsApp link generator</a></li><li><a href="/tools/auto-reply-menu-generator/">Auto-reply menu generator</a></li><li><a href="/tools/whatsapp-api-cost-calculator/">WhatsApp API cost calculator</a></li><li><a href="/tools/chat-button-generator/">Chat button generator</a></li><li><a href="/tools/text-formatter/">Text formatter</a></li><li><a href="/tools/">Free tools</a></li><li><a href="/about/">About this site</a></li><li><a href="/disclosure/">Affiliate disclosure</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms and refunds</a></li></ul></div> </div> <p><b>Web on WhatsApp (webonwhatsapp.com) is an independent, unofficial guide</b> published by <a href="https://airtimemedia.eu/" rel="publisher">Airtime Media</a>. It is not operated, endorsed or sponsored by WhatsApp LLC or Meta Platforms, Inc. "WhatsApp" is a trademark of its owner and is used here only to describe the product these guides are about. We never ask for your phone number, your verification code or a QR scan, and nothing on this site can sign you in to WhatsApp: that only happens at <a class="ext" href="https://web.whatsapp.com/" rel="noopener" target="_blank">web.whatsapp.com</a> and in the official apps.</p> </div> </footer> </body></html>
