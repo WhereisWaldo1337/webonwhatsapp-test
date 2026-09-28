@@ -1,3 +1,4 @@
-# staging mirror - not the site
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://webonwhatsapp.com/sitemap.xml
